@@ -1,1 +1,1 @@
-Exampples code while learning ebpf-go
+Examples code while learning ebpf-go
