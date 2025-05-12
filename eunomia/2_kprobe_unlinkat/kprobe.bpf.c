@@ -30,7 +30,7 @@ int BPF_KPROBE(do_unlinkat,int dfd, struct filename *name) {
     task_info->pid = bpf_get_current_pid_tgid() >> 32;
     bpf_probe_read_kernel_str(&task_info->filename,sizeof(task_info->filename),(void *)BPF_CORE_READ(name,name));
     // bpf_printk("KPROBE ENTRY pid = %d, filename =%s\n",pid,filename);
-    bpf_ringbuf_submit(&task_info,0);
+    bpf_ringbuf_submit(task_info,0);
     return 0;
 }
 
