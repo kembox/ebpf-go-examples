@@ -10,7 +10,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct event {
    int pid;
-   char filename[MAX_FILENAME_LEN];
+   u8 filename[MAX_FILENAME_LEN];
 };
 
 struct {
@@ -21,7 +21,6 @@ struct {
 
 SEC("kprobe/do_unlinkat")
 int BPF_KPROBE(do_unlinkat,int dfd, struct filename *name) {
-    const char *filename;
     struct event *task_info;
     task_info = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
     if (!task_info) {
@@ -29,7 +28,7 @@ int BPF_KPROBE(do_unlinkat,int dfd, struct filename *name) {
     }
 
     task_info->pid = bpf_get_current_pid_tgid() >> 32;
-    task_info->filename = BPF_CORE_READ(name, name);
+    bpf_probe_read_kernel_str(&task_info->filename,sizeof(task_info->filename),(void *)BPF_CORE_READ(name,name));
     // bpf_printk("KPROBE ENTRY pid = %d, filename =%s\n",pid,filename);
     bpf_ringbuf_submit(&task_info,0);
     return 0;

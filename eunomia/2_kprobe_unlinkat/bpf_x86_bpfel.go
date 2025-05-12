@@ -12,6 +12,12 @@ import (
 	"github.com/cilium/ebpf"
 )
 
+type bpfEvent struct {
+	Pid      int32
+	Filename [127]uint8
+	_        [1]byte
+}
+
 // loadBpf returns the embedded CollectionSpec for bpf.
 func loadBpf() (*ebpf.CollectionSpec, error) {
 	reader := bytes.NewReader(_BpfBytes)
@@ -54,14 +60,14 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	DoUnlinkat    *ebpf.ProgramSpec `ebpf:"do_unlinkat"`
-	DoUnlinkatRet *ebpf.ProgramSpec `ebpf:"do_unlinkat_ret"`
+	DoUnlinkat *ebpf.ProgramSpec `ebpf:"do_unlinkat"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfMapSpecs struct {
+	Events *ebpf.MapSpec `ebpf:"events"`
 }
 
 // bpfVariableSpecs contains global variables before they are loaded into the kernel.
@@ -90,10 +96,13 @@ func (o *bpfObjects) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfMaps struct {
+	Events *ebpf.Map `ebpf:"events"`
 }
 
 func (m *bpfMaps) Close() error {
-	return _BpfClose()
+	return _BpfClose(
+		m.Events,
+	)
 }
 
 // bpfVariables contains all global variables after they have been loaded into the kernel.
@@ -106,14 +115,12 @@ type bpfVariables struct {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	DoUnlinkat    *ebpf.Program `ebpf:"do_unlinkat"`
-	DoUnlinkatRet *ebpf.Program `ebpf:"do_unlinkat_ret"`
+	DoUnlinkat *ebpf.Program `ebpf:"do_unlinkat"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
 		p.DoUnlinkat,
-		p.DoUnlinkatRet,
 	)
 }
 
