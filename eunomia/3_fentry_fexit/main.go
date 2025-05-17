@@ -86,6 +86,7 @@ func main() {
 		}
 		if event.Entry {
 			log.Printf("Fentry event: pid: %d\tfilename: %s\n", event.Pid, unix.ByteSliceToString(event.Filename[:]))
+			continue
 		}
 		log.Printf("Fexit event: pid: %d\tfilename: %s, return code: %d\n", event.Pid, unix.ByteSliceToString(event.Filename[:]), event.Ret)
 	}
