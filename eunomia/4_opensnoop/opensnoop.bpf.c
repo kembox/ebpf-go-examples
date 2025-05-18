@@ -24,23 +24,27 @@ struct {
 SEC("tracepoint/syscalls/sys_enter_openat")
 int trace__syscalls__sys_enter_openat(struct trace_event_raw_sys_enter *ctx) {
     struct event *e;
-    long name_len;
+    e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
+    if (!e) {
+        return 0;
+    }
+
+    e->pid = bpf_get_current_pid_tgid() >> 32;
+
     struct task_struct *task;
     task = (struct task_struct *)bpf_get_current_task();
+
     int ret = bpf_core_read_str(&e->comm, sizeof(e->comm),task->comm);
     if ( ret < 0 ) {
         return 0;
     }
-    e->pid = bpf_get_current_pid_tgid() >> 32;
+
+    long name_len;
     name_len = bpf_core_read_str(&e->filename,sizeof(e->filename),ctx->args[1]);
     if (name_len < 0 ) {
         return 0;
     }
 
-    e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
-    if (!e) {
-        return 0;
-    }
     bpf_ringbuf_submit(e,0);
     return 0;
 }
