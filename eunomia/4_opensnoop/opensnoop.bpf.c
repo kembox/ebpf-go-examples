@@ -5,7 +5,7 @@
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
 
-char LICENSE[] SEC("license") = "GPL";
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
 //const volatile int pid_target = 0;
 struct event {
     int pid;
@@ -38,6 +38,9 @@ int trace__syscalls__sys_enter_openat(struct trace_event_raw_sys_enter *ctx) {
     }
 
     e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
+    if (!e) {
+        return 0;
+    }
     bpf_ringbuf_submit(e,0);
     return 0;
 }
