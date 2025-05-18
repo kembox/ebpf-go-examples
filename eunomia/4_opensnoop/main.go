@@ -32,7 +32,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	tplink, err := link.Tracepoint("syscalls", "sys_enter_at", objs.TraceSyscallsSysEnterAt, nil)
+	tplink, err := link.Tracepoint("syscalls", "sys_enter_openat", objs.TraceSyscallsSysEnterOpenat, nil)
 	if err != nil {
 		log.Fatalf("attaching tracepoint: %s", err)
 	}

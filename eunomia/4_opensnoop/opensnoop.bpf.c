@@ -6,7 +6,7 @@
 #include <bpf/bpf_core_read.h>
 
 char LICENSE[] SEC("license") = "GPL";
-const volatile int pid_target = 0;
+//const volatile int pid_target = 0;
 struct event {
     int pid;
     // char filename[127];
@@ -20,8 +20,9 @@ struct {
     __uint(max_entries,1<<24);
     __type(value, struct event);
 } events SEC(".maps");
+
 SEC("tracepoint/syscalls/sys_enter_openat")
-int trace__syscalls__sys_enter_at(struct trace_event_raw_sys_enter *ctx) {
+int trace__syscalls__sys_enter_openat(struct trace_event_raw_sys_enter *ctx) {
     struct event *e;
     long name_len;
     struct task_struct *task;
