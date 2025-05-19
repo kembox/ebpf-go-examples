@@ -75,6 +75,7 @@ type bpfMapSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfVariableSpecs struct {
+	PidTarget *ebpf.VariableSpec `ebpf:"pid_target"`
 }
 
 // bpfObjects contains all objects after they have been loaded into the kernel.
@@ -110,6 +111,7 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfVariables struct {
+	PidTarget *ebpf.Variable `ebpf:"pid_target"`
 }
 
 // bpfPrograms contains all programs after they have been loaded into the kernel.
