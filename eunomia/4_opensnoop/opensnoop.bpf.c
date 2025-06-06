@@ -39,8 +39,7 @@ int trace__syscalls__sys_enter_openat(struct syscall_trace_enter *ctx) {
 
     bpf_core_read_str(e->comm, sizeof(e->comm),&(task->comm));
 
-    char *filename_ptr = (char *) BPF_CORE_READ(ctx, args[1]);
-    bpf_core_read_user_str(e->filename, sizeof(e->filename), filename_ptr);
+    bpf_core_read_user_str(e->filename, sizeof(e->filename), ctx->args[1]);
 
     bpf_ringbuf_submit(e,0);
     return 0;
