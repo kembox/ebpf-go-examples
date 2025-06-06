@@ -34,16 +34,10 @@ int trace__syscalls__sys_enter_openat(struct trace_event_raw_sys_enter *ctx) {
     struct task_struct *task;
     task = (struct task_struct *)bpf_get_current_task();
 
-    int ret = bpf_core_read_str(&e->comm, sizeof(e->comm),task->comm);
-    if ( ret < 0 ) {
-        return 0;
-    }
+    bpf_core_read_str(e->comm, sizeof(e->comm),&(task->comm));
 
-    long name_len;
-    name_len = bpf_core_read_str(&e->filename,sizeof(e->filename),ctx->args[1]);
-    if (name_len < 0 ) {
-        return 0;
-    }
+    char *filename_ptr = (char *) BPF_CORE_READ(ctx, args[1]);
+    bpf_core_read_user_str(e->filename, sizeof(e->filename), filename_ptr);
 
     bpf_ringbuf_submit(e,0);
     return 0;
