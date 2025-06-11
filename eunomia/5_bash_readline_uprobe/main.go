@@ -66,8 +66,6 @@ func main() {
 	var event bpfEvent
 
 	for {
-
-		log.Printf("clgt")
 		record, err := rd.Read()
 		if err != nil {
 			if errors.Is(err, ringbuf.ErrClosed) {
@@ -77,8 +75,6 @@ func main() {
 			log.Printf("reading from buffer: %s", err)
 			continue
 		}
-		log.Printf("vltn")
-
 		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.LittleEndian, &event); err != nil {
 			log.Printf("parsing ring buff event %s", err)
 			continue

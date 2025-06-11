@@ -20,7 +20,7 @@ struct {
 } events SEC(".maps");
 
 SEC("uretprobe//bin/bash:readline")
-int BPF_KRETPROBE(printret,const void *ret) {
+int BPF_URETPROBE(printret,const void *ret) {
     struct event *e;
     if (!ret) {
         return 0;
