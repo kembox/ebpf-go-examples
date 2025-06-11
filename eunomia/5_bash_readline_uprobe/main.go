@@ -17,6 +17,11 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+const (
+	binPath = "/bin/bash"
+	symbol  = "readline"
+)
+
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -tags linux -target amd64 bpf bash_readline_uprobe.bpf.c -- -I../cilium/headers
 
 func main() {
@@ -34,14 +39,16 @@ func main() {
 	}
 	defer objs.Close()
 
-	link_exit, err := link.AttachTracing(link.TracingOptions{
-		Program: objs.bpfPrograms.Printret,
-	})
+	ex, err := link.OpenExecutable(binPath)
+	if err != nil {
+		log.Fatalf("opening executable: %s", err)
+	}
 
+	uretp, err := ex.Uretprobe(symbol, objs.bpfPrograms.Printret, nil)
 	if err != nil {
 		log.Fatalf("linking object: %v", err)
 	}
-	defer link_exit.Close()
+	defer uretp.Close()
 
 	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
 	if err != nil {
@@ -59,6 +66,8 @@ func main() {
 	var event bpfEvent
 
 	for {
+
+		log.Printf("clgt")
 		record, err := rd.Read()
 		if err != nil {
 			if errors.Is(err, ringbuf.ErrClosed) {
@@ -68,6 +77,7 @@ func main() {
 			log.Printf("reading from buffer: %s", err)
 			continue
 		}
+		log.Printf("vltn")
 
 		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.LittleEndian, &event); err != nil {
 			log.Printf("parsing ring buff event %s", err)
