@@ -26,13 +26,13 @@ int BPF_URETPROBE(printret,const void *ret) {
         return 0;
     }
 
-    //bpf_get_current_comm(e->comm,TASK_COMM_LEN);
-    e->pid = bpf_get_current_pid_tgid() >> 32;
-    bpf_probe_read_user_str(e->ret,sizeof(e->ret),ret);
-    e = bpf_ringbuf_reserve(&events,sizeof(e),0);
+    e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
     if (!e) {
         return 0;
     }
+    bpf_probe_read_user_str(e->ret,sizeof(e->ret),ret);
+    e->pid = bpf_get_current_pid_tgid() >> 32;
+    bpf_get_current_comm(&e->comm,TASK_COMM_LEN);
     bpf_ringbuf_submit(e,0);
     return 0;
 };
