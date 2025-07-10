@@ -46,10 +46,8 @@ static int probe_exit(void *ctx, int ret) {
     __u32 tid;
     pid_tgid = bpf_get_current_pid_tgid();
     tid  = (__u32)pid_tgid;
-    struct event *eventp;
-    struct event *e;
-    e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
-    if (!e) {
+    struct event *eventp = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
+    if (!eventp) {
         return 0;
     }
 
@@ -58,19 +56,13 @@ static int probe_exit(void *ctx, int ret) {
         return 0;
     }
 
-    e->ret = ret;
-    bpf_get_current_comm(e->comm,TASK_COMM_LEN);
-    e->pid = eventp->pid;
-    e->sig = eventp->sig;
-    e->tpid = eventp->tpid;
-
     /*
     bpf_printk("PID %d (%s) sent signal %d ",
            eventp->pid, eventp->comm, eventp->sig);
     bpf_printk("to PID %d, ret = %d",
            eventp->tpid, ret);
     */
-    bpf_ringbuf_submit(e,0);
+    bpf_ringbuf_submit(eventp,0);
     cleanup:
         bpf_map_delete_elem(&values,&tid);
         return 0;
