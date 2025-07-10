@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/cilium/ebpf/link"
+	"github.com/cilium/ebpf/ringbuf"
 	"github.com/cilium/ebpf/rlimit"
+	"golang.org/x/sys/unix"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -tags linux -target amd64 bpf sigsnoop.bpf.c -- -I../../cilium/headers
@@ -39,37 +43,38 @@ func main() {
 	}
 	defer kill_exit_link.Close()
 
+	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
+	if err != nil {
+		log.Fatalf("opening ringbuf reader %s", err)
+	}
+
+	defer rd.Close()
+
 	go func() {
 		<-stopper
-		log.Println("Received signal, exiting program..")
-		os.Exit(0)
+		if err := rd.Close(); err != nil {
+			log.Fatalf("closing buffer: %s", err)
+		}
 	}()
 
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		var (
-			key   string
-			value uint32
-		)
-		values := make(map[string]uint32)
-		entries := objs.Values.Iterate()
-		if entries == nil {
-			log.Fatalf("nil map")
-		} else {
-			log.Print(entries)
+	var event bpfEvent
+
+	for {
+		record, err := rd.Read()
+
+		if err != nil {
+			if errors.Is(err, ringbuf.ErrClosed) {
+				log.Println("receive signal, exiting")
+				return
+			}
+			log.Printf("reading from buffer: %s", err)
+			continue
 		}
-		log.Print("Start traversing hash map")
-		for entries.Next(&key, &value) {
-			log.Print("Inside iteration")
-			values[key] = value
+
+		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.LittleEndian, &event); err != nil {
+			log.Printf("parsing ring buffer event %s", err)
+			continue
 		}
-		log.Print("Done iteration")
-		if err := entries.Err(); err != nil {
-			log.Fatalf("Iterator encountered an error: %v", err)
-		}
-		for k, v := range values {
-			log.Printf("key: %s, value: %d\n", k, v)
-		}
+		log.Printf("PID %d (%s) sent signal %d to PID %d, ret = %d", event.Pid, unix.ByteSliceToString(event.Comm[:]), event.Sig, event.Tpid, event.Ret)
 	}
 }

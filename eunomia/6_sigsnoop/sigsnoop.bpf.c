@@ -11,7 +11,7 @@ struct event {
     unsigned int tpid;
     int sig;
     int ret;
-    char comm[TASK_COMM_LEN];
+    u8 comm[TASK_COMM_LEN];
 };
 
 struct {
@@ -20,6 +20,12 @@ struct {
     __type(key, __u32);
     __type(value, struct event);
 } values SEC(".maps");
+
+struct {
+    __uint(type, BPF_MAP_TYPE_RINGBUF);
+    __uint(max_entries, 1<<24);
+    __type(value, struct event);
+} events SEC(".maps");
 
 // `tpid` is the the PID of the process we want to kill - to pid
 static int probe_entry(int tpid, int sig) {
@@ -41,21 +47,34 @@ static int probe_exit(void *ctx, int ret) {
     pid_tgid = bpf_get_current_pid_tgid();
     tid  = (__u32)pid_tgid;
     struct event *eventp;
+    struct event *e;
+    e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
+    if (!e) {
+        return 0;
+    }
 
-    eventp = bpf_map_lookup_elem(&values,&tid);
+    (*ringbuf)eventp = bpf_map_lookup_elem(&values,&tid);
     if (!eventp) {
         return 0;
     }
 
-    eventp->ret = ret;
+    /*
+    e->ret = ret;
+    bpf_get_current_comm(e->comm,TASK_COMM_LEN);
+    e->pid = eventp->pid;
+    e->sig = eventp->sig;
+    e->tpid = eventp->tpid;
+    */
+
     /*
     bpf_printk("PID %d (%s) sent signal %d ",
            eventp->pid, eventp->comm, eventp->sig);
     bpf_printk("to PID %d, ret = %d",
            eventp->tpid, ret);
     */
+    bpf_ringbuf_submit(e,0);
     cleanup:
-        //bpf_map_delete_elem(&values,&tid);
+        bpf_map_delete_elem(&values,&tid);
         return 0;
 }
 

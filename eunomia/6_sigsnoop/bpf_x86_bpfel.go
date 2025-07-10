@@ -17,7 +17,7 @@ type bpfEvent struct {
 	Tpid uint32
 	Sig  int32
 	Ret  int32
-	Comm [16]int8
+	Comm [16]uint8
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
@@ -70,6 +70,7 @@ type bpfProgramSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfMapSpecs struct {
+	Events *ebpf.MapSpec `ebpf:"events"`
 	Values *ebpf.MapSpec `ebpf:"values"`
 }
 
@@ -99,11 +100,13 @@ func (o *bpfObjects) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfMaps struct {
+	Events *ebpf.Map `ebpf:"events"`
 	Values *ebpf.Map `ebpf:"values"`
 }
 
 func (m *bpfMaps) Close() error {
 	return _BpfClose(
+		m.Events,
 		m.Values,
 	)
 }
