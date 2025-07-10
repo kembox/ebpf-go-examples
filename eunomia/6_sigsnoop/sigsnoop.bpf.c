@@ -53,18 +53,16 @@ static int probe_exit(void *ctx, int ret) {
         return 0;
     }
 
-    (*ringbuf)eventp = bpf_map_lookup_elem(&values,&tid);
+    eventp = bpf_map_lookup_elem(&values,&tid);
     if (!eventp) {
         return 0;
     }
 
-    /*
     e->ret = ret;
     bpf_get_current_comm(e->comm,TASK_COMM_LEN);
     e->pid = eventp->pid;
     e->sig = eventp->sig;
     e->tpid = eventp->tpid;
-    */
 
     /*
     bpf_printk("PID %d (%s) sent signal %d ",
