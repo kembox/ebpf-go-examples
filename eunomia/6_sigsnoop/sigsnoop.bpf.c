@@ -36,25 +36,27 @@ static int probe_entry(int tpid, int sig) {
     tid = (__u32)pid_tgid;
     event.pid = pid_tgid >> 32;
     event.tpid = tpid;
+    event.sig = sig;
     bpf_get_current_comm(event.comm,sizeof(event.comm));
     bpf_map_update_elem(&values,&tid,&event,BPF_ANY);
     return 0;
 }
 
 static int probe_exit(void *ctx, int ret) {
-    __u64 pid_tgid;
     __u32 tid;
-    pid_tgid = bpf_get_current_pid_tgid();
-    tid  = (__u32)pid_tgid;
-    struct event *eventp;
+    tid = bpf_get_current_pid_tgid() >> 32;
     struct event *e;
     e = bpf_ringbuf_reserve(&events,sizeof(struct event),0);
     if (!e) {
-        return 0;
+        bpf_printk("bpf_ringbuf_reserve failed\n");
+        return 1;
     }
 
+    struct event *eventp;
     eventp = bpf_map_lookup_elem(&values,&tid);
     if (!eventp) {
+        bpf_printk("Can not find %d key, releasing ringbuf\n",tid);
+        bpf_ringbuf_discard(e,0);
         return 0;
     }
 
@@ -64,16 +66,13 @@ static int probe_exit(void *ctx, int ret) {
     e->sig = eventp->sig;
     e->tpid = eventp->tpid;
 
-    /*
-    bpf_printk("PID %d (%s) sent signal %d ",
-           eventp->pid, eventp->comm, eventp->sig);
-    bpf_printk("to PID %d, ret = %d",
-           eventp->tpid, ret);
-    */
+    bpf_map_delete_elem(&values,&tid);
     bpf_ringbuf_submit(e,0);
     cleanup:
         bpf_map_delete_elem(&values,&tid);
         return 0;
+
+
 }
 
 SEC("tracepoint/syscalls/sys_enter_kill")
