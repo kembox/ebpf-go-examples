@@ -22,7 +22,7 @@ struct {
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-SEC("tp/sched/sched_process_exit")
+SEC("tracepoint/sched/sched_process_exit")
 int handle_exit(struct trace_event_raw_sched_process_template *ctx) {
     pid_t pid, ppid, tid;
     struct event *e;
@@ -42,7 +42,7 @@ int handle_exit(struct trace_event_raw_sched_process_template *ctx) {
     ppid = BPF_CORE_READ(task,real_parent,pid);
     start_time = BPF_CORE_READ(task,start_time);
 
-    e = bpf_ringbuf_reserve(&rb, sizeof(e),0);
+    e = bpf_ringbuf_reserve(&rb, sizeof(struct event),0);
     if (!e) {
         return 1;
     }

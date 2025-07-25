@@ -33,7 +33,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	sched_process_exit_link, err := link.Tracepoint("tp/sched", "sched_process_exit", objs.HandleExit, nil)
+	sched_process_exit_link, err := link.Tracepoint("sched", "sched_process_exit", objs.HandleExit, nil)
 	if err != nil {
 		log.Fatalf("linking bpf program %v", err)
 	}
