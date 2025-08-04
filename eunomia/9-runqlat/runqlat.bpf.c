@@ -1,9 +1,10 @@
 //go:build ignore
 
-#include "../../cilium/vmlinux.h"
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
+#include <vmlinux.h>
+#include "../../libbpf-tools/core_fixes.bpf.h"
 
 #define MAX_ENTRIES 10240
 #define TASK_RUNNING 0
@@ -28,7 +29,7 @@ struct {
     __type(key, u32);
     __type(value, u32);
     __uint(max_entries, 1);
-} cgroup_maps SEC(".maps");
+} cgroup_map SEC(".maps");
 
 struct {
     __uint(type ,BPF_MAP_TYPE_HASH);
@@ -71,4 +72,19 @@ static unsigned int pid_namespace(struct task_struct *task) {
     bpf_core_read(&upid, sizeof(upid), &pid->numbers[level]);
     inum = BPF_CORE_READ(upid.ns, ns.inum);
     return inum;
+}
+
+static int handle_switch(bool preempt, struct task_struct *prev, struct task_struct *next) {
+    struct hist *histp;
+    u64 *tsp, slot;
+    u32 pid, hkey;
+    s64 delta; // just long long int type
+    
+    if (filter_cg && !bpf_current_task_under_cgroup(&cgroup_map, 0)) {
+        return 0;
+    }
+
+    if (get_task_state(prev) == TASK_RUNNING) {
+        trace_enqueue(BPF_CORE_READ(prev,tgid),BPF_CORE_READ(prev,pid));
+    }
 }
