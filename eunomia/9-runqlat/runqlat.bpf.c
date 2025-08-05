@@ -87,4 +87,26 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
     if (get_task_state(prev) == TASK_RUNNING) {
         trace_enqueue(BPF_CORE_READ(prev,tgid),BPF_CORE_READ(prev,pid));
     }
+
+    pid = BPF_CORE_READ(next, pid);
+
+    tsp = bpf_map_lookup_elem(&start, &pid);
+    if (!tsp) {
+        return 0;
+    }
+
+    delta = bpf_ktime_get_ns() - *tsp;
+    if ( delta < 0) {
+        goto cleanup;
+    }
+
+    if (targ_per_process) {
+        hkey = BPF_CORE_READ(next, tgid);
+    } else if (targ_per_thread) {
+        hkey = BPF_CORE_READ(next, pid);
+    } else if {targ_per_pidns} {
+        hkey = pid_namespace(next);
+    } else
+        hkey = -1;
+
 }
