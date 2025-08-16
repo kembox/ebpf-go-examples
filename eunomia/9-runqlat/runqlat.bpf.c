@@ -4,7 +4,10 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <vmlinux.h>
+#include <math.h>
 #include "../../libbpf-tools/core_fixes.bpf.h"
+#include "../../libbpf-tools/maps.bpf.h"
+#include "../../libbpf-tools/bits.bpf.h"
 
 #define MAX_ENTRIES 10240
 #define TASK_RUNNING 0
@@ -104,9 +107,52 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
         hkey = BPF_CORE_READ(next, tgid);
     } else if (targ_per_thread) {
         hkey = BPF_CORE_READ(next, pid);
-    } else if {targ_per_pidns} {
+    } else if (targ_per_pidns) {
         hkey = pid_namespace(next);
-    } else
+    } else {
         hkey = -1;
+    }
 
+    histp = bpf_map_lookup_or_try_init(&hists, &hkey, &zero);
+    if (!histp) {
+        goto cleanup;
+    }
+
+    if (!histp->comm[0]) {
+        bpf_probe_read_kernel_str(&histp->comm,sizeof(histp->comm),next->comm);
+    }
+
+    if(targ_ms) {
+        delta /= 1000000U;
+    } else {
+        delta /= 1000U;
+    }
+
+    slot = log2l(delta);
+    if ( slot >= MAX_SLOTS) {
+        slot = MAX_SLOTS - 1;
+        __sync_fetch_and_add(&histp->slots[slot],1);
+    }
+
+    cleanup:
+      bpf_map_delete_elem(&start,&pid);
+
+    return 0;
 }
+
+SEC("raw_tp/sched_wakeup")
+//https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L178-L180
+int BPF_PROG(handle_sched_wakeup,struct task_struct *p) {
+    if ( filter_cg && !bpf_current_task_under_cgroup(&cgroup_map,0)) {
+        return 0;
+    }
+    return trace_enqueue(BPF_CORE_READ(p,tgid),BPF_CORE_READ(p,pid));
+}
+
+SEC("raw_tp/sched_switch")
+//https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L227
+int BPF_PROG(handle_sched_switch,bool preempt,struct task_struct *prev,struct task_struct *next) {
+    return handle_switch(preempt,prev,next);
+}
+
+char LICENSE[] SEC("license") = "GPL";
