@@ -50,5 +50,7 @@ struct pid {
 	}
 	```
 ## How to check kernel events parameters ##
+- [Reference](https://mozillazg.com/2022/05/ebpf-libbpf-raw-tracepoint-common-questions-en.html)
 - From source code [include/trace/events](https://github.com/torvalds/linux/tree/master/include/trace/events)
 	- Example with `sched_switch`: https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L220-L227
+- What's the difference between the source code above and the `format` info in `/sys/kernel/debug/tracing/events/sched/sched_switch/format` ?
