@@ -27,9 +27,9 @@ struct pid {
 
 ## BPF_PROG macro ##
 - [BPF_PROG](https://docs.ebpf.io/ebpf-library/libbpf/ebpf/BPF_PROG/)
-- > The BPF_PROG macro makes it easier to write programs for program types that receive []u64 contexts such as BPF_PROG_TYPE_TRACING programs.
-- > Conventionally with these program contexts, the arguments to the program are put in this array. So the first argument would be in ctx[0], the second in ctx[1]. It is up to the program author to cast them into their actual type.
-- > allows you to write your program with a normal function signature, the macro will then do the casting for you.
+ > The BPF_PROG macro makes it easier to write programs for program types that receive []u64 contexts such as BPF_PROG_TYPE_TRACING programs.
+ > Conventionally with these program contexts, the arguments to the program are put in this array. So the first argument would be in ctx[0], the second in ctx[1]. It is up to the program author to cast them into their actual type.
+ > allows you to write your program with a normal function signature, the macro will then do the casting for you.
 - Example:
 	- The other way to write `BPF_PROG_TYPE_RAW_TRACEPOINT` program is to use `struct bpf_raw_tracepoint_args *ctx` and cast it by ourselves like `(struct task_struct *)ctx->args[0]`, for example
 	```
