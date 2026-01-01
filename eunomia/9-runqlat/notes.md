@@ -57,4 +57,5 @@ struct pid {
 - From source code [include/trace/events](https://github.com/torvalds/linux/tree/master/include/trace/events)
 	- Example with `sched_switch`: https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L220-L227
 - What's the difference between the source code above and the `format` info in `/sys/kernel/debug/tracing/events/sched/sched_switch/format` ?
+	
 	No difference , they are the same, read this [using the TRACE_EVENT macro lwm article](https://lwn.net/Articles/379903/) please
