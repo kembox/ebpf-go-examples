@@ -62,3 +62,8 @@ struct pid {
 - What's the difference between the source code above and the `format` info in `/sys/kernel/debug/tracing/events/sched/sched_switch/format` ?
 	
 	No difference , they are the same, read this [using the TRACE_EVENT macro lwm article](https://lwn.net/Articles/379903/) please
+
+## A confusing statement in pid_namespace ##
+- Understood the confusing `BPF_CORE_READ(upid.ns, ns.inum)`. Thanks to Gemini - I can't believe I said this :| 
+	- The source of confusion is `ns` . The `upid.ns` results in a `pid_namespace` struct object, which contains a field call `ns` as well. The `ns` is a `ns_common` struct which really contains an `inum` field
+	- I did see something off with this `BPF_CORE_READ` because if we're talking about the same ns here, it should be `BPF_CORE_READ(upid,ns,inum)` but couldn't figure it out. Ok I am stupid most of the time.
