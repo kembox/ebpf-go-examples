@@ -25,6 +25,9 @@ struct pid {
 - `upid` is used to get the id of `struct pid` as it is seen in particular namespace.
 [Reference](https://students.mimuw.edu.pl/ZSO/Wyklady/13_CPUschedulers1/ProcessScheduling1.pdf)
 
+- Finally got the point when libbpf maintainer said `following task_active_pid_ns` [here](https://github.com/iovisor/bcc/blob/master/libbpf-tools/runqlat.bpf.c#L66):
+	- It just simply means the way we get pid namespace [here](https://github.com/iovisor/bcc/blob/master/libbpf-tools/runqlat.bpf.c#L71) by `bpf_core_read` is the same way [task_active_pid_ns](https://github.com/torvalds/linux/blob/v6.4/kernel/pid.c#L507) or actually [ns_of_pid](https://github.com/torvalds/linux/blob/master/include/linux/pid.h#L149) does
+
 ## BPF_PROG macro ##
 - [BPF_PROG](https://docs.ebpf.io/ebpf-library/libbpf/ebpf/BPF_PROG/)
  > The BPF_PROG macro makes it easier to write programs for program types that receive []u64 contexts such as BPF_PROG_TYPE_TRACING programs.
