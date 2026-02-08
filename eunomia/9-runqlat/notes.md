@@ -67,3 +67,12 @@ struct pid {
 - Understood the confusing `BPF_CORE_READ(upid.ns, ns.inum)`. Thanks to Gemini - I can't believe I said this :| 
 	- The source of confusion is `ns` . The `upid.ns` results in a `pid_namespace` struct object, which contains a field call `ns` as well. The `ns` is a `ns_common` struct which really contains an `inum` field
 	- I did see something off with this `BPF_CORE_READ` because if we're talking about the same ns here, it should be `BPF_CORE_READ(upid,ns,inum)` but couldn't figure it out. Ok I am stupid most of the time.
+
+## BPF MAP TYPE ##
+- BPF_MAP_TYPE_HASH: generic map - map 
+- BPF_MAP_TYPE_CGROUP_ARRAY
+	- From [oracle blog](https://blogs.oracle.com/linux/bpf-in-depth-communicating-with-userspace#:~:text=BPF%5FMAP%5FTYPE%5FCGROUP%5FARRAY%3A%20Array,index)
+
+	> BPF_MAP_TYPE_CGROUP_ARRAY: Array map used to store cgroup fds in user-space for later use in BPF programs which call bpf_skb_under_cgroup() to check if skb is associated with the cgroup in the cgroup array at the specified index.
+	- In our case it's used by [bpf_current_task_under_cgroup](https://docs.ebpf.io/linux/helper-function/bpf_current_task_under_cgroup/)
+	- array map type
