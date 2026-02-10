@@ -68,7 +68,7 @@ static unsigned int pid_namespace(struct task_struct *task) {
     struct pid *pid;
     unsigned int level;
     struct upid upid;
-    unsigned int inum;
+    unsigned int inum; // to store inode number of cgroup object, as a unique identifier to group by
 
     pid = BPF_CORE_READ(task,thread_pid);
     level = BPF_CORE_READ(pid, level);
@@ -87,10 +87,13 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
         return 0;
     }
 
-    if (get_task_state(prev) == TASK_RUNNING) {
+    // If previous task state is running, means it's now is off-cpu, put it `start` map, pid value, timestamp key
+    if (get_task_state(prev) == TASK_RUNNING) {  // get_task_state is in cores_fixes.bpf.h
         trace_enqueue(BPF_CORE_READ(prev,tgid),BPF_CORE_READ(prev,pid));
     }
+    //
 
+    // If the `pid` is scheuled for next task and is in queue with record timestamp, calculate the delta / latency
     pid = BPF_CORE_READ(next, pid);
 
     tsp = bpf_map_lookup_elem(&start, &pid);
@@ -112,6 +115,8 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
     } else {
         hkey = -1;
     }
+
+    //
 
     histp = bpf_map_lookup_or_try_init(&hists, &hkey, &zero);
     if (!histp) {
