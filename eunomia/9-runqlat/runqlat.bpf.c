@@ -154,6 +154,15 @@ int BPF_PROG(handle_sched_wakeup,struct task_struct *p) {
     return trace_enqueue(BPF_CORE_READ(p,tgid),BPF_CORE_READ(p,pid));
 }
 
+SEC("raw_tp/sched_wakeup_new")
+// https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L185-L187
+int BPF_PROG(handle_sched_wakeup,struct task_struct *p) {
+    if ( filter_cg && !bpf_current_task_under_cgroup(&cgroup_map,0)) {
+        return 0;
+    }
+    return trace_enqueue(BPF_CORE_READ(p,tgid),BPF_CORE_READ(p,pid));
+}
+
 SEC("raw_tp/sched_switch")
 //https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L227
 int BPF_PROG(handle_sched_switch,bool preempt,struct task_struct *prev,struct task_struct *next) {
