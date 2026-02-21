@@ -76,3 +76,12 @@ struct pid {
 	> BPF_MAP_TYPE_CGROUP_ARRAY: Array map used to store cgroup fds in user-space for later use in BPF programs which call bpf_skb_under_cgroup() to check if skb is associated with the cgroup in the cgroup array at the specified index.
 	- In our case it's used by [bpf_current_task_under_cgroup](https://docs.ebpf.io/linux/helper-function/bpf_current_task_under_cgroup/)
 	- array map type
+
+## CPU scheduling events ##
+- There are 3 events that put a thread into CPU runqueue ( aka transition to `Runnable` state )
+	- Wokenup from Sleep state `sched/sched_wakeup` and `sched/sched_waking`
+		> Note: sched_waking and sched_wakeup provide nearly the same information. The difference lies in wakeup events across CPUs, which involve inter-process interrupts. The former is always emitted on the source ( wakee ) CPU, the latter maybe executed on either the source or destination ( waked ) CPU depending on several factors. sched_waking is usually sufficient for latency analysis, unless you're looking into breaking down latency due to the scheduler's wake up path, such as inter-processor signaling. 
+		[Source](https://perfetto.dev/docs/data-sources/cpu-scheduling#:~:text=NOTE,signaling)
+	- Newly created process enters the queue `sched/sched_wakeup_new`
+	- Thread was preempted and yield its CPU to another thread `sched/sched_switch`
+- `Wakeup` doesn't mean the state's change to `RUNNING` right away, only to be a `Runnable` state and to be put into a queue
