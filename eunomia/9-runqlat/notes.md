@@ -85,3 +85,19 @@ struct pid {
 	- Newly created process enters the queue `sched/sched_wakeup_new`
 	- Thread was preempted and yield its CPU to another thread `sched/sched_switch`
 - `Wakeup` doesn't mean the state's change to `RUNNING` right away, only to be a `Runnable` state and to be put into a queue
+
+## bpf2go generation error ##
+
+- The local version have `#include "../../cilium/vmlinux.h"` but in case you missed it, you may meet errors below:
+
+	- Missing headers <linux/types.h>
+	```
+	error: unknown type name '__u64'
+	```
+	- Ubuntu 24.04 requires manual symlink:
+	```
+	sudo ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm
+	```
+	to avoid `'asm/types.h' file not found`
+
+- Currently got this https://github.com/bpftrace/bpftrace/pull/3934

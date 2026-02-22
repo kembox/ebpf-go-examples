@@ -1,10 +1,9 @@
 //go:build ignore
 
-#include <bpf/bpf_core_read.h>
+#include "../../cilium/vmlinux.h"
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_core_read.h>
 #include <bpf/bpf_tracing.h>
-#include <vmlinux.h>
-#include <math.h>
 #include "../../libbpf-tools/core_fixes.bpf.h"
 #include "../../libbpf-tools/maps.bpf.h"
 #include "../../libbpf-tools/bits.bpf.h"
