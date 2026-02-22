@@ -38,7 +38,7 @@ struct {
     __uint(type ,BPF_MAP_TYPE_HASH);
     __uint(max_entires, MAX_ENTRIES);
     __type(key, u32);
-    __type(value,u32);
+    __type(value, u64);
 } start SEC(".maps");
 
 static struct hist zero;
