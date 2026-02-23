@@ -156,7 +156,7 @@ int BPF_PROG(handle_sched_wakeup,struct task_struct *p) {
 
 SEC("raw_tp/sched_wakeup_new")
 // https://github.com/torvalds/linux/blob/master/include/trace/events/sched.h#L185-L187
-int BPF_PROG(handle_sched_wakeup,struct task_struct *p) {
+int BPF_PROG(handle_sched_wakeup_new,struct task_struct *p) {
     if ( filter_cg && !bpf_current_task_under_cgroup(&cgroup_map,0)) {
         return 0;
     }
