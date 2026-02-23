@@ -7,6 +7,7 @@
 #include "../../libbpf-tools/core_fixes.bpf.h"
 #include "../../libbpf-tools/maps.bpf.h"
 #include "../../libbpf-tools/bits.bpf.h"
+#include <math.h>
 
 #define MAX_ENTRIES 10240
 #define TASK_RUNNING 0

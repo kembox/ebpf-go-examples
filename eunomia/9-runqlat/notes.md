@@ -100,4 +100,4 @@ struct pid {
 	```
 	to avoid `'asm/types.h' file not found`
 
-- Currently got this https://github.com/bpftrace/bpftrace/pull/3934
+- Currently got this https://github.com/bpftrace/bpftrace/pull/3934 - Fixed - outdated vmlinux.h. Had to generate it from my ubuntu 24.04 ( 6.14.0-37 )
