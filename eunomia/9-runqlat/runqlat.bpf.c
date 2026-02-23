@@ -7,7 +7,6 @@
 #include "../../libbpf-tools/core_fixes.bpf.h"
 #include "../../libbpf-tools/maps.bpf.h"
 #include "../../libbpf-tools/bits.bpf.h"
-#include <math.h>
 
 #define MAX_ENTRIES 10240
 #define TASK_RUNNING 0
@@ -36,7 +35,7 @@ struct {
 
 struct {
     __uint(type ,BPF_MAP_TYPE_HASH);
-    __uint(max_entires, MAX_ENTRIES);
+    __uint(max_entries, MAX_ENTRIES);
     __type(key, u32);
     __type(value, u64);
 } start SEC(".maps");

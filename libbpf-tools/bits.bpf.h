@@ -1,42 +1,31 @@
-// SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
-// Copyright (c) 2020 Anton Protopopov
-#ifndef __MAPS_BPF_H
-#define __MAPS_BPF_H
+/* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
+#ifndef __BITS_BPF_H
+#define __BITS_BPF_H
 
-#include <bpf/bpf_helpers.h>
-#include <asm-generic/errno.h>
+#define READ_ONCE(x) (*(volatile typeof(x) *)&(x))
+#define WRITE_ONCE(x, val) ((*(volatile typeof(x) *)&(x)) = val)
 
-static __always_inline void *
-bpf_map_lookup_or_try_init(void *map, const void *key, const void *init)
+static __always_inline u64 log2(u32 v)
 {
-	void *val;
-	/* bpf helper functions like bpf_map_update_elem() below normally return
-	 * long, but using int instead of long to store the result is a workaround
-	 * to avoid incorrectly evaluating err in cases where the following criteria
-	 * is met:
-	 *     the architecture is 64-bit
-	 *     the helper function return type is long
-	 *     the helper function returns the value of a call to a bpf_map_ops func
-	 *     the bpf_map_ops function return type is int
-	 *     the compiler inlines the helper function
-	 *     the compiler does not sign extend the result of the bpf_map_ops func
-	 *
-	 * if this criteria is met, at best an error can only be checked as zero or
-	 * non-zero. it will not be possible to check for a negative value or a
-	 * specific error value. this is because the sign bit would have been stuck
-	 * at the 32nd bit of a 64-bit long int.
-	 */
-	int err;
+	u32 shift, r;
 
-	val = bpf_map_lookup_elem(map, key);
-	if (val)
-		return val;
+	r = (v > 0xFFFF) << 4; v >>= r;
+	shift = (v > 0xFF) << 3; v >>= shift; r |= shift;
+	shift = (v > 0xF) << 2; v >>= shift; r |= shift;
+	shift = (v > 0x3) << 1; v >>= shift; r |= shift;
+	r |= (v >> 1);
 
-	err = bpf_map_update_elem(map, key, init, BPF_NOEXIST);
-	if (err && err != -EEXIST)
-		return 0;
-
-	return bpf_map_lookup_elem(map, key);
+	return r;
 }
 
-#endif /* __MAPS_BPF_H */
+static __always_inline u64 log2l(u64 v)
+{
+	u32 hi = v >> 32;
+
+	if (hi)
+		return log2(hi) + 32;
+	else
+		return log2(v);
+}
+
+#endif /* __BITS_BPF_H */
