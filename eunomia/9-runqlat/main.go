@@ -7,7 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
 )
 
@@ -20,5 +22,46 @@ func main() {
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatalf("remove mem lock %v",err)
 	}
+
+	objs := bpfObjects{}
+
+	if err := loadBpfObjects(&objs,nil); err != nil {
+		log.Fatalf("loading bpf objects %v",err)
+	}
+
+	defer objs.Close()
+
+	sched_wake_up_link, err := link.AttachRawTracepoint(link.RawTracepointOptions{
+		Name: "sched_wakeup",
+		Program: objs.HandleSchedWakeup,
+	})
+
+	if err != nil {
+		log.Fatalf("Attach raw tracepoint sched_wakeup %v",err)
+	}
+
+	defer sched_wake_up_link.Close()
+
+	sched_wake_up_new_link, err := link.AttachRawTracepoint(link.RawTracepointOptions{
+		Name: "sched_wakeup_new",
+		Program: objs.HandleSchedWakeupNew,
+	})
+
+	if err != nil {
+		log.Fatalf("Attach raw tracepoint sched_wakeup_new %v",err)
+	}
+
+	defer sched_wake_up_new_link.Close()
+
+	sched_switch_link, err := link.AttachRawTracepoint(link.RawTracepointOptions{
+		Name: "sched_switch",
+		Program: objs.HandleSchedSwitch,
+	})
+
+	if err != nil {
+		log.Fatalf("Attach raw tracepoint sched_switch %v",err)
+	}
+
+	defer sched_switch_link.Close()
 
 }
