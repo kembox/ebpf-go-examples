@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -63,5 +64,18 @@ func main() {
 	}
 
 	defer sched_switch_link.Close()
+
+	ticker := time.NewTicker(1 * time.Second)
+
+	for range ticker.C {
+		fmt.Println("Run queue latency historgram:")
+		var key uint32
+		var value bpfHist
+		entries := objs.Hists.Iterate()
+
+		for entries.Next(&key,&value) {
+			fmt.Printf("comm %s latency %d\n",value.Comm,value.Slots)
+		}
+	}
 
 }
