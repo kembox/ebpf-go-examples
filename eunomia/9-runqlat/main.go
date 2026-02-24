@@ -74,7 +74,7 @@ func main() {
 		entries := objs.Hists.Iterate()
 
 		for entries.Next(&key,&value) {
-			fmt.Printf("comm %s latency %d\n",value.Comm,value.Slots)
+			fmt.Printf("comm %s latency %d\n",string(value.Comm[:]),value.Slots)
 		}
 	}
 

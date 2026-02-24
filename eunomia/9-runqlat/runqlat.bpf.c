@@ -23,7 +23,7 @@ const volatile bool targ_tgid = false;
 
 struct hist {
     __u32 slots[MAX_SLOTS];
-    char comm[TASK_COMM_LEN];
+    u8 comm[TASK_COMM_LEN]; //u8 instead of char for easier converting to go string
 };
 
 struct {

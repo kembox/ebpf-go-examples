@@ -14,7 +14,7 @@ import (
 
 type bpfHist struct {
 	Slots [26]uint32
-	Comm  [16]int8
+	Comm  [16]uint8
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
