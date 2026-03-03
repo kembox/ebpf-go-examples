@@ -65,6 +65,12 @@ func main() {
 
 	defer sched_switch_link.Close()
 
+	go func() {
+		sig := <-stopper
+		fmt.Printf("\nReceived signal: %v\n", sig )
+		os.Exit(0)
+	}()
+
 	ticker := time.NewTicker(1 * time.Second)
 
 	for range ticker.C {
