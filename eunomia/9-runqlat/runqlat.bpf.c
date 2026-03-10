@@ -115,7 +115,6 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
         hkey = -1;
     }
 
-    //
 
     histp = bpf_map_lookup_or_try_init(&hists, &hkey, &zero);
     if (!histp) {
