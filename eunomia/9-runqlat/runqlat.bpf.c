@@ -135,8 +135,8 @@ static int handle_switch(bool preempt, struct task_struct *prev, struct task_str
     slot = log2l(delta);
     if ( slot >= MAX_SLOTS) {
         slot = MAX_SLOTS - 1;
-        __sync_fetch_and_add(&histp->slots[slot],1);
     }
+    __sync_fetch_and_add(&histp->slots[slot],1);
 
     cleanup:
       bpf_map_delete_elem(&start,&pid);
