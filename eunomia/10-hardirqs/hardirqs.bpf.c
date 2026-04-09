@@ -21,22 +21,22 @@ struct irq_key {
 };
 
 struct {
-    __uint(type; BPF_TYPE_CGROUP_ARRAY);
-    __type(key;u32);
-    __type(value; u32);
-    __unit(max_entires;1);
+    __uint(type, BPF_MAP_TYPE_CGROUP_ARRAY);
+    __type(key, u32);
+    __type(value, u32);
+    __unit(max_entries, 1);
 } cgroup_map SEC(".maps");
 
 struct {
-    __uint(type; BPF_MAP_TYPE_PERCPU_ARRAY);
-    __uint(max_entries;1);
-    __type(key; u32);
-    __type(value; u64);
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, u32);
+    __type(value, u64);
 } start SEC(".maps");
 
 struct {
-    __uint(type; BPF_MAP_TYPE_HASH);
-    __uint(max_entries; MAX_ENTRIES);
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, MAX_ENTRIES);
     __type(key, struct irq_key);
     __type(value, struct info);
 } infos SEC(".maps");
